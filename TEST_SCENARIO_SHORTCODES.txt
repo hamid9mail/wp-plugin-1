@@ -1,0 +1,72 @@
+<!--
+  کد کامل برای تست سناریوی پیچیده
+  قبل از تست، یک نشان با نامک "path_master" در مرکز گیمیفیکیشن بسازید.
+-->
+
+[station station_node_id="start_point" title="۱. نقطه شروع"
+         mission_type="button_click"
+         mission_button_text="ماموریت اول را تکمیل کن"
+         rewards="add_points:50|award_badge:path_master|unlock_station:final_destination"]
+    [static_content]
+        <h3>به این مسیر آزمایشی خوش آمدید.</h3>
+        <p>با تکمیل این ایستگاه، شما ۵۰ امتیاز و نشان "استاد مسیر" را کسب کرده و مستقیماً به ایستگاه سوم خواهید رفت.</p>
+    [/static_content]
+    [result_content]
+        <p>عالی بود! شما پاداش خود را دریافت کردید. اکنون ایستگاه سوم (مقصد نهایی) برای شما باز شده است.</p>
+    [/result_content]
+[/station]
+
+
+[station station_node_id="branching_point" title="۲. نقطه انشعاب (انتخاب مسیر)"]
+    [static_content]
+        <h3>حالا یک انتخاب مهم پیش روی شماست.</h3>
+        <p>می‌خواهید مسیر A را دنبال کنید یا مسیر B؟ هر انتخاب، شما را به یک مقصد متفاوت هدایت می‌کند.</p>
+    [/static_content]
+    [mission_content]
+        <p>یکی از دکمه‌های زیر را انتخاب کنید:</p>
+
+        <button class="psych-station-action-btn" data-rewards="unlock_station:branch_a" onclick="psych_complete_mission_inline(this)">
+            می‌خواهم به مسیر A بروم
+        </button>
+
+        <button class="psych-station-action-btn" data-rewards="unlock_station:branch_b" onclick="psych_complete_mission_inline(this)">
+            می‌خواهم به مسیر B بروم
+        </button>
+    [/mission_content]
+    [result_content]
+        <p>شما مسیر خود را انتخاب کردید!</p>
+    [/result_content]
+</station>
+
+
+[station station_node_id="final_destination" title="۳. مقصد نهایی"
+         mission_type="button_click"
+         mission_button_text="تکمیل ماموریت سوم"
+         rewards="unlock_station:branching_point"
+         notification_text="آفرین! شما به نقطه انشعاب مسیر رسیدید. حالا می‌توانید مسیر خود را انتخاب کنید."]
+    [static_content]
+        <h3>شما به ایستگاه سوم رسیدید!</h3>
+        <p>با تکمیل این ایستگاه، به ایستگاه دوم (نقطه انشعاب) باز خواهید گشت تا مسیر خود را انتخاب کنید و یک نوتیفیکیشن سفارشی دریافت خواهید کرد.</p>
+    [/static_content]
+    [result_content]
+        <p>ماموریت سوم با موفقیت انجام شد. ایستگاه دوم برای شما فعال گردید.</p>
+    [/result_content]
+</station>
+
+
+<!-- ایستگاه‌های انشعابی که در ابتدا قفل هستند -->
+
+[station station_node_id="branch_a" title="شروع مسیر A"]
+    [static_content]
+        <h3>شما مسیر A را انتخاب کردید.</h3>
+        <p>محتوای مربوط به مسیر A در اینجا قرار می‌گیرد.</p>
+    [/static_content]
+</station>
+
+
+[station station_node_id="branch_b" title="شروع مسیر B"]
+    [static_content]
+        <h3>شما مسیر B را انتخاب کردید.</h3>
+        <p>محتوای مربوط به مسیر B در اینجا قرار می‌گیرد.</p>
+    [/static_content]
+</station>
