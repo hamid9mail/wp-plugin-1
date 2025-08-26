@@ -1269,11 +1269,20 @@ final class Psych_Gamification_Center {
     public function enqueue_admin_assets($hook) {
         if (strpos($hook, $this->admin_page_slug) === false) return;
         
-        wp_enqueue_style('psych-gamification-admin', false, [], self::VERSION);
-        wp_add_inline_style('psych-gamification-admin', $this->get_admin_css());
+        wp_enqueue_style(
+            'psych-gamification-admin',
+            plugin_dir_url(__FILE__) . 'assets/gamification-admin.css',
+            [],
+            self::VERSION
+        );
         
-        wp_enqueue_script('psych-gamification-admin', false, ['jquery'], self::VERSION, true);
-        wp_add_inline_script('psych-gamification-admin', $this->get_admin_js());
+        wp_enqueue_script(
+            'psych-gamification-admin',
+            plugin_dir_url(__FILE__) . 'assets/gamification-admin.js',
+            ['jquery'],
+            self::VERSION,
+            true
+        );
         
         wp_localize_script('psych-gamification-admin', 'psych_gamification_admin', [
             'ajax_url' => admin_url('admin-ajax.php'),
@@ -1287,11 +1296,20 @@ final class Psych_Gamification_Center {
     public function enqueue_frontend_assets() {
         if (!is_user_logged_in()) return;
         
-        wp_enqueue_style('psych-gamification-frontend', false, [], self::VERSION);
-        wp_add_inline_style('psych-gamification-frontend', $this->get_frontend_css());
+        wp_enqueue_style(
+            'psych-gamification-frontend',
+            plugin_dir_url(__FILE__) . 'assets/gamification-frontend.css',
+            [],
+            self::VERSION
+        );
         
-        wp_enqueue_script('psych-gamification-frontend', false, ['jquery'], self::VERSION, true);
-        wp_add_inline_script('psych-gamification-frontend', $this->get_frontend_js());
+        wp_enqueue_script(
+            'psych-gamification-frontend',
+            plugin_dir_url(__FILE__) . 'assets/gamification-frontend.js',
+            ['jquery'],
+            self::VERSION,
+            true
+        );
         
         wp_localize_script('psych-gamification-frontend', 'psych_gamification', [
             'ajax_url' => admin_url('admin-ajax.php'),
@@ -1317,412 +1335,6 @@ final class Psych_Gamification_Center {
             </div>
         </div>
         <?php
-    }
-
-    /**
-     * Get admin CSS
-     */
-    private function get_admin_css() {
-        return '
-        .psych-admin-wrap {
-            background: #f9f9f9;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .psych-admin-wrap .form-table {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .psych-admin-wrap .form-table th {
-            width: 220px;
-            padding: 20px;
-        }
-        .psych-admin-wrap .form-table td {
-            padding: 15px 10px;
-        }
-        .psych-admin-wrap .form-table input[type="text"],
-        .psych-admin-wrap .form-table input[type="number"] {
-            width: 100%;
-            max-width: 450px;
-        }
-        
-        .psych-dashboard-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
-        }
-        
-        .psych-card {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-        }
-        
-        .psych-card-icon {
-            font-size: 3rem;
-            margin-left: 20px;
-            color: #3498db;
-        }
-        
-        .psych-card-content h3 {
-            margin: 0;
-            font-size: 2rem;
-            color: #2c3e50;
-        }
-        
-        .psych-card-content p {
-            margin: 5px 0 0 0;
-            color: #7f8c8d;
-        }
-        
-        .psych-recent-activities {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-top: 30px;
-        }
-        
-        .psych-activities-list {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .psych-activities-list li {
-            padding: 10px 0;
-            border-bottom: 1px solid #ecf0f1;
-        }
-        
-        .psych-activities-list li:last-child {
-            border-bottom: none;
-        }
-        
-        .psych-stats-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-top: 20px;
-        }
-        
-        .psych-stats-section {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        @media (max-width: 768px) {
-            .psych-dashboard-cards {
-                grid-template-columns: 1fr;
-            }
-            
-            .psych-stats-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .psych-card {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .psych-card-icon {
-                margin: 0 0 15px 0;
-            }
-        }
-        ';
-    }
-
-    /**
-     * Get frontend CSS
-     */
-    private function get_frontend_css() {
-               return '
-        .psych-user-points,
-        .psych-user-level {
-            font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 15px;
-            background: #f8f9fa;
-            display: inline-block;
-            margin: 2px;
-        }
-        
-        .psych-user-badges-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 10px 0;
-        }
-        
-        .psych-badge {
-            background: #fff;
-            border: 2px solid currentColor;
-            border-radius: 20px;
-            padding: 5px 12px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .psych-leaderboard {
-            background: #fff;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .psych-leaderboard-list {
-            list-style: none;
-            padding: 0;
-            margin: 15px 0 0 0;
-        }
-        
-        .psych-leaderboard-list li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            margin: 5px 0;
-            background: #f8f9fa;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        .psych-leaderboard-list li:nth-child(1) {
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            color: white;
-        }
-        
-        .psych-leaderboard-list li:nth-child(2) {
-            background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
-            color: white;
-        }
-        
-        .psych-leaderboard-list li:nth-child(3) {
-            background: linear-gradient(135deg, #CD7F32, #B8860B);
-            color: white;
-        }
-        
-        .psych-leaderboard-list li.current-user {
-            background: linear-gradient(135deg, #3498DB, #2980B9);
-            color: white;
-            border: 2px solid #1F618D;
-            font-weight: bold;
-        }
-        
-        .user-name {
-            font-weight: 600;
-        }
-        
-        .user-points {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .user-level {
-            font-size: 0.8rem;
-            background: rgba(255,255,255,0.2);
-            padding: 2px 8px;
-            border-radius: 10px;
-        }
-        
-        #psych-notification-container {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 10000;
-            max-width: 350px;
-        }
-        
-        #psych-notification-popup {
-            background: linear-gradient(135deg, #27AE60, #2ECC71);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.3);
-            position: relative;
-            animation: slideInFromTop 0.5s ease-out;
-        }
-        
-        #psych-notification-close {
-            position: absolute;
-            top: 10px;
-            left: 15px;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            opacity: 0.8;
-        }
-        
-        #psych-notification-close:hover {
-            opacity: 1;
-        }
-        
-        @keyframes slideInFromTop {
-            from {
-                transform: translateY(-100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        
-        .psych-no-badges {
-            color: #7f8c8d;
-            font-style: italic;
-            padding: 15px;
-            text-align: center;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-        
-        @media (max-width: 768px) {
-            .psych-user-badges-list {
-                justify-content: center;
-            }
-            
-            .psych-leaderboard-list li {
-                flex-direction: column;
-                text-align: center;
-                gap: 5px;
-            }
-            
-            #psych-notification-container {
-                top: 10px;
-                left: 10px;
-                right: 10px;
-                max-width: none;
-            }
-        }
-        ';
-    }
-
-    /**
-     * Get admin JavaScript
-     */
-    private function get_admin_js() {
-        return '
-        jQuery(document).ready(function($) {
-            // Manual award form handling
-            $("#manual-award-form").on("submit", function(e) {
-                e.preventDefault();
-                
-                var formData = {
-                    action: "psych_manual_award",
-                    nonce: psych_gamification_admin.nonce,
-                    user_id: $("#award_user_id").val(),
-                    award_type: $("#award_type").val(),
-                    award_value: $("#award_value").val(),
-                    reason: $("#award_reason").val()
-                };
-                
-                $.post(psych_gamification_admin.ajax_url, formData)
-                .done(function(response) {
-                    if (response.success) {
-                        alert("✅ " + response.data.message);
-                        $("#manual-award-form")[0].reset();
-                    } else {
-                        alert("❌ " + response.data.message);
-                    }
-                })
-                .fail(function() {
-                    alert("❌ خطا در ارتباط با سرور");
-                });
-            });
-            
-            // Live search for users
-            $("#award_user_search").on("input", function() {
-                var query = $(this).val();
-                if (query.length < 2) return;
-                
-                // Here you could implement user search functionality
-                // For now, this is a placeholder
-            });
-        });
-        ';
-    }
-
-    /**
-     * Get frontend JavaScript
-     */
-    private function get_frontend_js() {
-        return '
-        jQuery(document).ready(function($) {
-            var notificationShown = false;
-            
-            // Check for pending notifications
-            function checkNotifications() {
-                if (notificationShown) return;
-                
-                $.post(psych_gamification.ajax_url, {
-                    action: "psych_get_pending_notifications",
-                    nonce: psych_gamification.nonce
-                })
-                .done(function(response) {
-                    if (response.success && response.data.notifications.length > 0) {
-                        showNotification(response.data.notifications[0]);
-                    }
-                });
-            }
-            
-            // Show notification popup
-            function showNotification(notification) {
-                var content = "<h4>" + notification.title + "</h4><p>" + notification.message + "</p>";
-                $("#psych-notification-content").html(content);
-                $("#psych-notification-container").fadeIn();
-                notificationShown = true;
-                
-                // Auto-hide after 5 seconds
-                setTimeout(function() {
-                    hideNotification(notification.id);
-                }, 5000);
-            }
-            
-            // Hide notification
-            function hideNotification(notificationId) {
-                $("#psych-notification-container").fadeOut(function() {
-                    // Clear the notification from database
-                    if (notificationId) {
-                        $.post(psych_gamification.ajax_url, {
-                            action: "psych_clear_notification",
-                            nonce: psych_gamification.nonce,
-                            notification_id: notificationId
-                        });
-                    }
-                    notificationShown = false;
-                });
-            }
-            
-            // Close notification manually
-            $("#psych-notification-close").on("click", function() {
-                hideNotification();
-            });
-            
-            // Check for notifications every 30 seconds
-            setInterval(checkNotifications, 30000);
-            
-            // Initial check
-            setTimeout(checkNotifications, 2000);
-            
-            // Handle mission completion integration
-            $(document).on("psych_mission_completed", function(e, missionId, buttonElement) {
-                // This integrates with Interactive Content Module
-                setTimeout(checkNotifications, 1000);
-            });
-        });
-        ';
     }
 
     /**
@@ -2004,17 +1616,6 @@ final class Psych_Gamification_Center {
         });
         </script>
         
-        <style>
-        .level-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-        .level-row input {
-            flex: 1;
-        }
-        </style>
         <?php
     }
 
@@ -2078,50 +1679,6 @@ final class Psych_Gamification_Center {
             </form>
         </div>
         
-        <script>
-        jQuery(document).ready(function($) {
-            $("#add-badge").click(function() {
-                var slug = prompt("نامک نشان (انگلیسی، بدون فاصله):");
-                if (!slug) return;
-                
-                slug = slug.toLowerCase().replace(/[^a-z0-9_]/g, '_');
-                
-                var html = '<div class="badge-row">' +
-                    '<input type="text" value="' + slug + '" name="badge_slugs[]" readonly />' +
-                    '<input type="text" name="badges[' + slug + '][name]" placeholder="نام نشان" />' +
-                    '<textarea name="badges[' + slug + '][description]" placeholder="توضیحات"></textarea>' +
-                    '<input type="text" name="badges[' + slug + '][icon]" placeholder="کلاس آیکون" value="fa-trophy" />' +
-                    '<input type="color" name="badges[' + slug + '][color]" value="#FFD700" />' +
-                    '<button type="button" class="button remove-badge">حذف</button>' +
-                    '</div>';
-                
-                $("#badges-container").append(html);
-            });
-            
-            $(document).on("click", ".remove-badge", function() {
-                if (confirm("آیا مطمئن هستید؟")) {
-                    $(this).closest(".badge-row").remove();
-                }
-            });
-        });
-        </script>
-        
-        <style>
-        .badge-row {
-            display: grid;
-            grid-template-columns: 150px 200px 1fr 150px 80px 80px;
-            gap: 10px;
-            margin-bottom: 15px;
-            align-items: start;
-            padding: 15px;
-            background: #f9f9f9;
-            border-radius: 5px;
-        }
-        .badge-row textarea {
-            min-height: 60px;
-            resize: vertical;
-        }
-        </style>
         <?php
     }
 

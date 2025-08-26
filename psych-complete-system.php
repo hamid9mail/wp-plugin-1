@@ -201,6 +201,9 @@ final class Psych_Complete_System_Enhanced {
         
         // Fix for nested shortcode processing
         add_filter('psych_process_station_content', [$this, 'process_nested_shortcodes'], 10, 1);
+
+        // Performance hooks
+        add_action('save_post', [$this, 'update_shortcode_presence_meta'], 10, 2);
     }
 
     /**
@@ -243,7 +246,8 @@ final class Psych_Complete_System_Enhanced {
             'report-card.php' => 'Psych_Unified_Report_Card_Enhanced',
             'dashboard-display.php' => 'Psych_Dashboard_Display_Enhanced',
             'personalization-module.php' => 'Psych_Personalization_Module',
-            'admin-dashboard-module.php' => 'Psych_Admin_Dashboard_Module'
+            'admin-dashboard-module.php' => 'Psych_Admin_Dashboard_Module',
+            'advanced-quiz-module.php' => 'Psych_Advanced_Quiz_Module'
         ];
 
         foreach ($modules_to_load as $file => $class) {
@@ -436,20 +440,20 @@ final class Psych_Complete_System_Enhanced {
 
             wp_localize_script('psych-system-admin', 'psych_system_admin', [
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('psych_system_admin_nonce'),
+                'nonces' => [
+                    'system_status' => wp_create_nonce('psych_system_admin_nonce'),
+                    'clear_cache' => wp_create_nonce('psych_clear_cache')
+                ],
                 'version' => self::VERSION,
                 'modules' => array_keys($this->modules)
             ]);
 
             wp_enqueue_style(
-                'psych-system-admin',
+                'psych-system-admin-styles',
                 PSYCH_SYSTEM_URL . 'assets/admin.css',
                 [],
                 self::VERSION
             );
-
-            // Add inline admin styles
-            wp_add_inline_style('psych-system-admin', $this->get_admin_inline_styles());
         }
     }
 
@@ -470,6 +474,23 @@ final class Psych_Complete_System_Enhanced {
     /**
      * Check if frontend assets should be loaded
      */
+    private function get_psych_shortcodes() {
+        return [
+            'psych_dashboard', 'psych_gamified_header', 'psych_progress_path',
+            'psych_leaderboard', 'psych_interactive_content', 'psych_report_card',
+            'psychocourse_path', 'psych_content_block', 'psych_user_points',
+            'psych_user_level', 'psych_user_badges', 'psych_user_performance_header',
+            'station', 'psych_button', 'psych_hidden_content', 'psych_accordion',
+            'psych_quiz'
+        ];
+    }
+
+    /**
+     * Check if frontend assets should be loaded (performance enhanced).
+     *
+     * This function first checks for a meta field flag which is set on save_post.
+     * This is much more performant than scanning post_content on every page load.
+     */
     private function should_load_frontend_assets() {
         global $post;
 
@@ -477,25 +498,13 @@ final class Psych_Complete_System_Enhanced {
             return false;
         }
 
-        $shortcodes = [
-            'psych_dashboard',
-            'psych_gamified_header',
-            'psych_progress_path',
-            'psych_leaderboard',
-            'psych_interactive_content',
-            'psych_report_card',
-            'psychocourse_path',
-            'psych_content_block',
-            'psych_user_points',
-            'psych_user_level',
-            'psych_user_badges',
-            'psych_user_performance_header',
-            'station',
-            'psych_button',
-            'psych_hidden_content',
-            'psych_accordion',
-            'psych_quiz'
-        ];
+        // First, check for the performant meta flag.
+        if (get_post_meta($post->ID, '_psych_has_shortcodes', true)) {
+            return true;
+        }
+
+        // Fallback for older posts or if meta is not set.
+        $shortcodes = $this->get_psych_shortcodes();
 
         foreach ($shortcodes as $shortcode) {
             if (has_shortcode($post->post_content, $shortcode)) {
@@ -507,64 +516,43 @@ final class Psych_Complete_System_Enhanced {
     }
 
     /**
-     * Get admin inline styles
+     * On post save, check for any of our shortcodes and update post meta.
+     * This avoids scanning post_content on every page load.
+     *
+     * @param int     $post_id The post ID.
+     * @param WP_Post $post    The post object.
      */
-    private function get_admin_inline_styles() {
-        return '
-            .psych-admin-container {
-                background: #f1f1f1;
-                padding: 20px;
-                border-radius: 8px;
-                margin: 20px 0;
-            }
+    public function update_shortcode_presence_meta($post_id, $post) {
+        // Basic checks to avoid running on revisions, auto-drafts etc.
+        if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
+            return;
+        }
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+        if (empty($post->post_content)) {
+            delete_post_meta($post_id, '_psych_has_shortcodes');
+            return;
+        }
 
-            .psych-admin-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 20px;
-                margin: 20px 0;
-            }
+        $shortcodes = $this->get_psych_shortcodes();
+        $found = false;
 
-            .psych-admin-card {
-                background: #fff;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                border-right: 4px solid #3498db;
+        foreach ($shortcodes as $shortcode) {
+            if (has_shortcode($post->post_content, $shortcode)) {
+                $found = true;
+                break;
             }
+        }
 
-            .psych-admin-card h3 {
-                margin-top: 0;
-                color: #2c3e50;
-            }
-
-            .psych-status-indicator {
-                display: inline-block;
-                width: 12px;
-                height: 12px;
-                border-radius: 50%;
-                margin-left: 10px;
-            }
-
-            .psych-status-active { background: #27ae60; }
-            .psych-status-inactive { background: #e74c3c; }
-            .psych-status-warning { background: #f39c12; }
-
-            .psych-admin-stats {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 15px;
-                margin: 20px 0;
-            }
-
-            .psych-admin-stat {
-                background: #fff;
-                padding: 15px;
-                border-radius: 6px;
-                text-align: center;
-                border-left: 4px solid #3498db;
-            }
-        ';
+        if ($found) {
+            update_post_meta($post_id, '_psych_has_shortcodes', true);
+        } else {
+            delete_post_meta($post_id, '_psych_has_shortcodes');
+        }
     }
 
     /**
@@ -694,37 +682,6 @@ final class Psych_Complete_System_Enhanced {
                 </div>
             </div>
         </div>
-
-        <script>
-        function psychClearCache() {
-            if (confirm('آیا مطمئن هستید که می‌خواهید کش را پاک کنید؟')) {
-                jQuery.post(ajaxurl, {
-                    action: 'psych_clear_cache',
-                    nonce: '<?php echo wp_create_nonce('psych_clear_cache'); ?>'
-                }, function(response) {
-                    if (response.success) {
-                        alert('کش با موفقیت پاک شد.');
-                        location.reload();
-                    } else {
-                        alert('خطا: ' + response.data.message);
-                    }
-                });
-            }
-        }
-
-        function psychTestSystem() {
-            jQuery.post(ajaxurl, {
-                action: 'psych_system_status',
-                nonce: '<?php echo wp_create_nonce('psych_system_admin_nonce'); ?>'
-            }, function(response) {
-                if (response.success) {
-                    alert('سیستم عملکرد مناسبی دارد!');
-                } else {
-                    alert('خطا در سیستم: ' + response.data.message);
-                }
-            });
-        }
-        </script>
         <?php
     }
 
