@@ -1,72 +1,283 @@
+# راهنمای کامل سیستم جامع روان گستر (Psych Complete System)
+
+## مقدمه
+این راهنما به شما کمک می‌کند تا از تمام قابلیت‌ها و شورت‌کدهای موجود در سیستم جامع روان گستر، به خصوص ماژول قدرتمند مسیر رشد (Path Engine)، به بهترین شکل استفاده کنید. این سیستم برای ایجاد تجربه‌های یادگیری پویا، تعاملی و شخصی‌سازی شده طراحی شده است.
+
+---
+
+## بخش ۱: ماژول مسیر رشد (Path Engine)
+
+### ۱.۱ - مفهوم کلیدی: سیستم چند بازیگری (Multi-Actor System)
+یکی از قدرتمندترین ویژگی‌های سیستم مسیر رشد، توانایی آن در مدیریت "بازیگران" (Actors) مختلف است. این یعنی سیستم به خوبی درک می‌کند که **چه کسی** در حال انجام یک عمل است و آن عمل **برای چه کسی** ثبت می‌شود. این قابلیت به شما اجازه می‌دهد سناریوهای ارزیابی، تایید و بازخورد بسیار پیشرفته‌ای را پیاده‌سازی کنید.
+
+---
+این ماژول به شما اجازه می‌دهد تا مسیرهای یادگیری پیچیده، شرطی و تعاملی برای کاربران خود بسازید.
+
+### ۱.۲ - شورت‌کد اصلی مسیر: `[psychocourse_path]`
+این شورت‌کد به عنوان کانتینر اصلی برای یک مسیر عمل می‌کند و تمام ایستگاه‌ها باید درون آن قرار گیرند.
+
+**ویژگی‌ها:**
+*   `display_mode` (نوع: `string`, پیش‌فرض: `timeline`): نحوه نمایش مسیر را تعیین می‌کند. مقادیر مجاز: `timeline`, `accordion`, `cards`, `treasure_map`, `simple_list`.
+*   `theme` (نوع: `string`, پیش‌فرض: `default`): تم رنگی مسیر را مشخص می‌کند. مقادیر مجاز: `default`, `dark`, `minimal`, `colorful`.
+*   `show_progress` (نوع: `boolean`, پیش‌فرض: `true`): نوار پیشرفت کلی مسیر را نمایش می‌دهد یا پنهان می‌کند.
+*   `path_title` (نوع: `string`, پیش‌فرض: `''`): یک عنوان برای کل مسیر نمایش می‌دهد.
+
+---
+
+### ۱.۳ - شورت‌کد ایستگاه: `[station]`
+قلب تپنده مسیر شما. هر `[station]` یک مرحله یا ماموریت در مسیر است. در ادامه لیست کامل ویژگی‌های این شورت‌کد قدرتمند آمده است.
+
+**ویژگی‌های اصلی:**
+*   `title` (نوع: `string`, **الزامی**): عنوان ایستگاه که به کاربر نمایش داده می‌شود.
+*   `station_node_id` (نوع: `string`, **بسیار مهم**): یک شناسه منحصر به فرد برای ایستگاه. اگر این شناسه را مشخص نکنید، به صورت خودکار ساخته می‌شود. اما برای ارجاع به این ایستگاه در پاداش‌ها (مثلاً برای باز کردن یا نمایان کردن آن)، حتماً باید یک شناسه مشخص و منحصر به فرد برای آن تعریف کنید.
+*   `icon` (نوع: `string`, پیش‌فرض: `fas fa-flag`): آیکون ایستگاه از کتابخانه Font Awesome.
+
+**ویژگی‌های کنترل وضعیت و نمایش:**
+*   `initial_state` (نوع: `string`, پیش‌فرض: `''`): وضعیت اولیه ایستگاه را تعیین می‌کند. مقادیر ممکن که با کاما (`,`) جدا می‌شوند عبارتند از:
+    *   `locked`: ایستگاه در ابتدا قفل است.
+    *   `hidden`: ایستگاه در ابتدا به طور کامل از مسیر مخفی است.
+    *   مثال: `initial_state="locked,hidden"`
+*   `unlock_trigger` (نوع: `string`, پیش‌فرض: `sequential`): شرط باز شدن ایستگاه. `sequential` یعنی ایستگاه قبلی باید تکمیل شده باشد. `independent` یعنی باز شدن ایستگاه به مراحل قبلی وابسته نیست و فقط به شروط دیگر (مانند `unlock_condition`) بستگی دارد.
+*   `unlock_condition` (نوع: `string`): شروط پیشرفته و ترکیبی برای باز شدن ایستگاه. شرایط با `|` از هم جدا می‌شوند. (مثال: `unlock_condition="has_badge:pro|min_points:500"`)
+*   `relation` (نوع: `string`, پیش‌فرض: `AND`): رابطه منطقی بین شروط `unlock_condition`. می‌تواند `AND` یا `OR` باشد.
+
+**ویژگی‌های ماموریت:**
+*   `mission_type` (نوع: `string`, پیش‌فرض: `button_click`): نوع ماموریتی که کاربر باید انجام دهد.
+*   `mission_target` (نوع: `string`): هدف ماموریت که به `mission_type` بستگی دارد (مثال: `form_id:7` برای گرویتی فرم، `product_id:101` برای ووکامرس).
+*   `mission_button_text` (نوع: `string`, پیش‌فرض: `مشاهده ماموریت`): متن دکمه برای ماموریت‌های نوع `button_click`.
+
+**ویژگی‌های پاداش:**
+*   `rewards` (نوع: `string`): پاداش‌هایی که کاربر پس از تکمیل دریافت می‌کند. پاداش‌ها با `|` از هم جدا می‌شوند. (مثال: `add_points:50|award_badge:3|show_station:secret_mission`)
+*   `notification_text` (نوع: `string`): متن سفارشی برای اعلان پاداش‌ها.
+
+---
+
+### ۱.۴ - شورت‌کدهای محتوای ایستگاه
+*   `[static_content]...[/static_content]`: محتوای ثابت که همیشه نمایش داده می‌شود.
+*   `[mission_content]...[/mission_content]`: محتوای ماموریت که قبل از تکمیل نمایش داده می‌شود.
+*   `[result_content]...[/result_content]`: محتوای نتیجه که بعد از تکمیل نمایش داده می‌شود.
+
+---
+
+### ۱.۵ - شورت‌کدهای شرطی و دینامیک
+*   `[student_only]...[/student_only]`: محتوا فقط برای دانشجو قابل مشاهده است.
+*   `[coach_only]...[/coach_only]`: محتوا فقط برای مربی (در حالت impersonate) قابل مشاهده است.
+*   `[mission_submission_count]`: شمارنده پاسخ‌های فرم را در ماموریت‌های `gform` نمایش می‌دهد.
+*   `[mission_actors_count]`: تعداد بازیگران خارجی که ماموریت را تکمیل کرده‌اند نمایش می‌دهد.
+*   `[mission_actor_link]`: لینک اشتراک‌گذاری برای ماموریت‌های چند بازیگره.
+*   `[mission_approval_form]`: فرم تایید/رد را برای مربی نمایش می‌دهد.
+
+---
+
+### ۱.۶ - سیستم فلگ (Flag System): یکپارچه‌سازی و کنترل پیشرفته
+سیستم فلگ یک مکانیزم قدرتمند برای کنترل پیشرفته مسیر و یکپارچه‌سازی با سایر بخش‌های سایت شماست. فلگ‌ها مانند کلیدهای "خاموش/روشن" در پروفایل هر کاربر عمل می‌کنند.
+
+**کاربرد اصلی فلگ:**
+*   **تکمیل یک ماموریت (Mission Completion):** این اصلی‌ترین کاربرد فلگ است. شما می‌توانید ایستگاهی با `mission_type="flag"` تعریف کنید. این ایستگاه به عنوان یک "آداپتور جهانی" عمل می‌کند و منتظر می‌ماند تا یک رویداد خارجی (مانند کلیک روی یک دکمه خاص، مشاهده یک ویدیو، یا هر عمل دیگر در سایت شما) از طریق کدنویسی تابع `psych_complete_mission_by_flag()` را فراخوانی کند. به محض فراخوانی تابع، این ماموریت تکمیل می‌شود.
+
+**چگونه یک فلگ را فعال کنیم؟**
+*   **از طریق کد PHP (برای توسعه‌دهندگان):** شما می‌توانید از هر جای دیگر در کد سایتتان تابع `psych_complete_mission_by_flag(string $flag_name, int $user_id)` را فراخوانی کنید.
+
+**مثال:**
+```html
+[station title="مشاهده ویدیوی آموزشی" mission_type="flag" mission_target="watched_video_abc"]
+  [mission_content]
+    <p>برای تکمیل این مرحله، ویدیوی آموزشی را به طور کامل مشاهده کنید.</p>
+    <!-- کد نمایش ویدیو در اینجا قرار می‌گیرد -->
+  [/mission_content]
+[/station]
+```
+*توضیح:* در این سناریو، توسعه‌دهنده می‌تواند با استفاده از API پلتفرم ویدیو، رویداد "پایان ویدیو" را شناسایی کرده و سپس تابع `psych_complete_mission_by_flag('watched_video_abc', $user_id)` را اجرا کند تا این ماموریت به طور خودکار تکمیل شود.
+
+---
+
+## بخش ۲: ماژول شخصی‌سازی (Personalization Module)
+با استفاده از شورت‌کد `[psych_personalize]` و ویژگی `condition`، محتوای شرطی بر اساس اطلاعات کاربر (امتیاز، نشان، نقش و ...) نمایش دهید.
+*   **مثال:** `[psych_personalize condition="points>=1000"]محتوای ویژه[/psych_personalize]`
+
+---
+
+## بخش ۳: شورت‌کدهای عمومی و گیمیفیکیشن
+این شورت‌کدها برای نمایش اطلاعات کاربر در هر جای سایت استفاده می‌شوند (`[psych_dashboard]`, `[psych_user_points]`, `[psych_leaderboard]` و ...).
+
+---
+
+## بخش ۴: سناریوهای پیشرفته: ترکیب انواع ماموریت و بازیگران
+
+در این بخش، مثال‌های دقیقی برای ترکیب انواع ماموریت با بازیگران مختلف ارائه می‌شود تا بتوانید از حداکثر ظرفیت سیستم استفاده کنید.
+
+### سناریو ۱: ماموریت از نوع `gform` (گرویتی فرم)
+
+**الف) بازیگر `self` (حالت استاندارد):** دانشجو خودش فرم را پر می‌کند.
+```html
+[station title="آزمون خودارزیابی" mission_type="gform" mission_target="form_id:10"]
+  [mission_content]
+    <p>لطفاً فرم زیر را برای ارزیابی هفتگی خود تکمیل کنید.</p>
+    [gravityform id="10" ajax="true"]
+  [/mission_content]
+[/station]
+```
+
+**ب) بازیگر `coach`:** مربی یک فرم ارزیابی را برای دانشجو پر می‌کند.
+```html
+[station title="ارزیابی ماهانه توسط مربی" actors="coach" mission_type="gform" mission_target="form_id:11"]
+  [mission_content]
+    [student_only]
+      <p>این مرحله توسط مربی شما تکمیل خواهد شد. لطفاً منتظر بمانید.</p>
+    [/student_only]
+    [coach_only]
+      <p><strong>فرم ارزیابی دانشجو:</strong> لطفاً پس از بررسی عملکرد ماهانه، فرم زیر را برای ایشان تکمیل نمایید.</p>
+      [gravityform id="11" ajax="true"]
+    [/coach_only]
+  [/mission_content]
+[/station]
+```
+
+**ج) بازیگر `guest_link` (بازخورد ۳۶۰ درجه):** دانشجو باید از ۵ نفر خارج از سیستم بازخورد بگیرد.
+```html
+[station title="جمع‌آوری بازخورد از همکاران" mission_type="gform" mission_target="form_id:12" actors="guest_link" required_actors_count="5" rewards="add_points:200"]
+  [static_content]
+    <p>برای این مرحله، باید لینک زیر را برای ۵ نفر از همکاران خود ارسال کنید تا فرم بازخورد را برای شما پر کنند.</p>
+    <p><strong>لینک اشتراک‌گذاری:</strong> [mission_actor_link]</p>
+    <p><strong>تعداد بازخوردهای دریافتی:</strong> [mission_actors_count]</p>
+  [/static_content]
+  [result_content]
+    <p>تبریک! شما بازخورد لازم را از ۵ نفر دریافت کردید.</p>
+  [/result_content]
+[/station]
+```
+
+---
+### سناریو ۲: ماموریت از نوع `button_click`
+
+**الف) بازیگر `self` (حالت استاندارد):** دانشجو با یک کلیک، مطالعه یک بخش را تایید می‌کند.
+```html
+[station title="مطالعه فصل اول کتاب" mission_type="button_click" mission_button_text="مطالعه کردم و آماده‌ام!"]
+  [mission_content]
+    <p>پس از مطالعه کامل فصل اول، روی دکمه زیر کلیک کنید تا وارد مرحله بعد شوید.</p>
+  [/mission_content]
+[/station]
+```
+
+**ب) بازیگر `coach`:** مربی انجام یک وظیفه آفلاین (مانند تماس تلفنی) را برای دانشجو تایید می‌کند.
+```html
+[station title="تایید انجام تماس با مشتری" actors="coach" mission_type="button_click" mission_button_text="تایید می‌کنم که تماس انجام شد"]
+  [mission_content]
+    [student_only]
+      <p>این مرحله پس از بررسی و تایید مربی تکمیل خواهد شد.</p>
+    [/student_only]
+    [coach_only]
+      <p>در صورتی که دانشجو وظیفه تماس با مشتری را به درستی انجام داده است، با کلیک روی دکمه زیر این مرحله را برای او تکمیل کنید.</p>
+    [/coach_only]
+  [/mission_content]
+[/station]
+```
+
+---
+### نکته در مورد سایر انواع ماموریت
+ماموریت‌هایی مانند `purchase` (خرید)، `custom_test` (آزمون) و `achieve_badge` (کسب نشان) به طور ذاتی به حساب کاربری خود شخص وابسته‌اند و بنابراین فقط توسط `self` قابل انجام هستند. سیستم به طور خودکار این موضوع را مدیریت می‌کند.
+
+---
+---
+
+# سناریوی جامع برای نمایش تمام قابلیت‌ها
+
 <!--
-  کد کامل برای تست سناریوی پیچیده
-  قبل از تست، یک نشان با نامک "path_master" در مرکز گیمیفیکیشن بسازید.
+    نیازمندی‌ها برای این سناریو:
+    1. یک محصول ووکامرس با ID: 123
+    2. یک فرم گرویتی با ID: 456
+    3. یک آزمون سفارشی با ID: 789
+    4. نشان‌هایی با نامک: 'starter_badge', 'pro_badge'
 -->
 
-[station station_node_id="start_point" title="۱. نقطه شروع"
-         mission_type="button_click"
-         mission_button_text="ماموریت اول را تکمیل کن"
-         rewards="add_points:50|award_badge:path_master|unlock_station:final_destination"]
-    [static_content]
-        <h3>به این مسیر آزمایشی خوش آمدید.</h3>
-        <p>با تکمیل این ایستگاه، شما ۵۰ امتیاز و نشان "استاد مسیر" را کسب کرده و مستقیماً به ایستگاه سوم خواهید رفت.</p>
-    [/static_content]
-    [result_content]
-        <p>عالی بود! شما پاداش خود را دریافت کردید. اکنون ایستگاه سوم (مقصد نهایی) برای شما باز شده است.</p>
-    [/result_content]
-[/station]
+[psychocourse_path path_title="دوره جامع آموزش سیستم" display_mode="timeline" show_progress="true"]
 
+    [station station_node_id="intro" title="۱. خوش‌آمدگویی و شروع" mission_type="button_click" mission_button_text="شروع می‌کنم!" rewards="add_points:10|award_badge:starter_badge"]
+        [static_content]
+            <h3>به دوره جامع آموزش سیستم خوش آمدید!</h3>
+            <p>در این دوره شما با تمام قابلیت‌های کلیدی سیستم آشنا خواهید شد. با کلیک روی دکمه زیر، اولین امتیاز و نشان خود را کسب کنید.</p>
+        [/static_content]
+        [result_content]
+            <p>عالی! شما نشان "تازه‌کار" را کسب کردید. به مرحله بعد بروید.</p>
+        [/result_content]
+    [/station]
 
-[station station_node_id="branching_point" title="۲. نقطه انشعاب (انتخاب مسیر)"]
-    [static_content]
-        <h3>حالا یک انتخاب مهم پیش روی شماست.</h3>
-        <p>می‌خواهید مسیر A را دنبال کنید یا مسیر B؟ هر انتخاب، شما را به یک مقصد متفاوت هدایت می‌کند.</p>
-    [/static_content]
-    [mission_content]
-        <p>یکی از دکمه‌های زیر را انتخاب کنید:</p>
+    [station station_node_id="gform_mission" title="۲. ماموریت گرویتی فرم" mission_type="gform" mission_target="form_id:456" rewards="add_points:50"]
+        [mission_content]
+            <h4>فرم نظرسنجی</h4>
+            <p>لطفاً برای ادامه، فرم کوتاه زیر را تکمیل کنید.</p>
+            [gravityform id="456" ajax="true"]
+        [/mission_content]
+        [result_content]
+            <p>از بازخورد شما متشکریم! ۵۰ امتیاز کسب کردید.</p>
+        [/result_content]
+    [/station]
 
-        <button class="psych-station-action-btn" data-rewards="unlock_station:branch_a" onclick="psych_complete_mission_inline(this)">
-            می‌خواهم به مسیر A بروم
-        </button>
+    [station station_node_id="purchase_mission" title="۳. ماموریت خرید محصول" mission_type="purchase" mission_target="product_id:123" rewards="add_points:100"]
+        [mission_content]
+            <p>برای دسترسی به محتوای ویژه، باید محصول "کتاب کار پیشرفته" را از فروشگاه تهیه کنید.</p>
+        [/mission_content]
+        [result_content]
+            <p>خرید شما با موفقیت ثبت شد. ۱۰۰ امتیاز هدیه گرفتید!</p>
+        [/result_content]
+    [/station]
 
-        <button class="psych-station-action-btn" data-rewards="unlock_station:branch_b" onclick="psych_complete_mission_inline(this)">
-            می‌خواهم به مسیر B بروم
-        </button>
-    [/mission_content]
-    [result_content]
-        <p>شما مسیر خود را انتخاب کردید!</p>
-    [/result_content]
-</station>
+    [station station_node_id="conditional_station" title="۴. ایستگاه شرطی برای حرفه‌ای‌ها" unlock_condition="has_badge:starter_badge|min_points:150" relation="AND" rewards="award_badge:pro_badge"]
+        [static_content]
+            <p>شما چون بیش از ۱۵۰ امتیاز و نشان "تازه‌کار" را دارید، این ایستگاه ویژه برایتان باز شده است.</p>
+        [/static_content]
+        [mission_content]
+            <p>با تایید این مرحله، نشان "کاربر حرفه‌ای" را کسب کنید.</p>
+        [/mission_content]
+        [result_content]
+            <p>تبریک! شما اکنون یک کاربر حرفه‌ای هستید.</p>
+        [/result_content]
+    [/station]
 
+    [station station_node_id="flag_mission" title="۵. ماموریت مبتنی بر فلگ" mission_type="flag" mission_target="external_event_completed"]
+        [mission_content]
+            <p>این ماموریت منتظر یک رویداد خارجی است. برای شبیه‌سازی، یک توسعه‌دهنده باید تابع `psych_complete_mission_by_flag('external_event_completed', $user_id)` را اجرا کند.</p>
+        [/mission_content]
+        [result_content]
+            <p>رویداد خارجی با موفقیت ثبت شد!</p>
+        [/result_content]
+    [/station]
 
-[station station_node_id="final_destination" title="۳. مقصد نهایی"
-         mission_type="button_click"
-         mission_button_text="تکمیل ماموریت سوم"
-         rewards="unlock_station:branching_point"
-         notification_text="آفرین! شما به نقطه انشعاب مسیر رسیدید. حالا می‌توانید مسیر خود را انتخاب کنید."]
-    [static_content]
-        <h3>شما به ایستگاه سوم رسیدید!</h3>
-        <p>با تکمیل این ایستگاه، به ایستگاه دوم (نقطه انشعاب) باز خواهید گشت تا مسیر خود را انتخاب کنید و یک نوتیفیکیشن سفارشی دریافت خواهید کرد.</p>
-    [/static_content]
-    [result_content]
-        <p>ماموریت سوم با موفقیت انجام شد. ایستگاه دوم برای شما فعال گردید.</p>
-    [/result_content]
-</station>
+    [station station_node_id="coach_approval" title="۶. تایید توسط مربی" actors="coach" mission_type="button_click" mission_button_text="عملکرد دانشجو را تایید می‌کنم"]
+        [mission_content]
+            [student_only]
+                <p>این مرحله باید توسط مربی شما بررسی و تایید شود. لطفاً منتظر بمانید.</p>
+            [/student_only]
+            [coach_only]
+                <h4>بررسی عملکرد دانشجو</h4>
+                <p>لطفاً پس از بررسی تکالیف این هفته، عملکرد ایشان را با کلیک روی دکمه زیر تایید کنید.</p>
+            [/coach_only]
+        [/mission_content]
+        [result_content]
+            <p>عملکرد شما توسط مربی تایید شد.</p>
+        [/result_content]
+    [/station]
 
+    [station station_node_id="360_feedback" title="۷. بازخورد ۳۶۰ درجه" actors="guest_link" mission_type="gform" mission_target="form_id:456" required_actors_count="3" rewards="add_points:200"]
+        [static_content]
+            <h4>جمع‌آوری بازخورد</h4>
+            <p>برای این مرحله مهم، باید لینک زیر را برای ۳ نفر از همکاران یا دوستان خود ارسال کنید تا فرم بازخورد کوتاهی را برای شما پر کنند.</p>
+            <p><strong>لینک اشتراک‌گذاری شما:</strong><br><code>[mission_actor_link]</code></p>
+            <p><strong>تعداد بازخوردهای دریافتی تا این لحظه:</strong> [mission_actors_count]</p>
+        [/static_content]
+        [mission_content]
+             <p>منتظر دریافت بازخوردها هستیم...</p>
+        [/mission_content]
+        [result_content]
+            <p>تبریک! شما تمام بازخوردهای مورد نیاز را جمع‌آوری کردید و ۲۰۰ امتیاز ویژه گرفتید.</p>
+        [/result_content]
+    [/station]
 
-<!-- ایستگاه‌های انشعابی که در ابتدا قفل هستند -->
+    [psych_personalize condition="has_badge:pro_badge"]
+        <div style="background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; margin-top: 20px; border-radius: 8px;">
+            <h4>پیام ویژه برای کاربران حرفه‌ای!</h4>
+            <p>شما با کسب نشان "کاربر حرفه‌ای" ثابت کردید که در استفاده از این سیستم مهارت دارید. به شما تبریک می‌گوییم!</p>
+        </div>
+    [/psych_personalize]
 
-[station station_node_id="branch_a" title="شروع مسیر A"]
-    [static_content]
-        <h3>شما مسیر A را انتخاب کردید.</h3>
-        <p>محتوای مربوط به مسیر A در اینجا قرار می‌گیرد.</p>
-    [/static_content]
-</station>
-
-
-[station station_node_id="branch_b" title="شروع مسیر B"]
-    [static_content]
-        <h3>شما مسیر B را انتخاب کردید.</h3>
-        <p>محتوای مربوط به مسیر B در اینجا قرار می‌گیرد.</p>
-    [/static_content]
-</station>
+[/psychocourse_path]

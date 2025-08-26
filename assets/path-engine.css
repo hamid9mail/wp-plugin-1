@@ -1,0 +1,306 @@
+/* PSYCH PATH ENGINE - COMPLETE CSS STYLES */
+/* ================================================================= */
+
+/* CSS Variables for Theming */
+:root {
+    --psych-primary-color: #007bff;
+    --psych-primary-hover: #0056b3;
+    --psych-success-color: #28a745;
+    --psych-success-hover: #1e7e34;
+    --psych-danger-color: #dc3545;
+    --psych-danger-hover: #c82333;
+    --psych-warning-color: #ffc107;
+    --psych-warning-hover: #e0a800;
+    --psych-info-color: #17a2b8;
+    --psych-info-hover: #138496;
+    --psych-gray-100: #f8f9fa;
+    --psych-gray-200: #e9ecef;
+    --psych-gray-300: #dee2e6;
+    --psych-gray-400: #ced4da;
+    --psych-gray-500: #adb5bd;
+    --psych-gray-600: #6c757d;
+    --psych-gray-700: #495057;
+    --psych-gray-800: #343a40;
+    --psych-gray-900: #212529;
+    --psych-white: #ffffff;
+    --psych-black: #000000;
+    --psych-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --psych-border-radius: 8px;
+    --psych-border-radius-lg: 12px;
+    --psych-border-radius-xl: 16px;
+    --psych-box-shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --psych-box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    --psych-box-shadow-lg: 0 8px 25px rgba(0,0,0,0.2);
+    --psych-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --psych-animation-slide-up: slideUpFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.psych-rewards-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000002;
+    animation: fadeIn 0.3s ease-out;
+}
+.psych-rewards-popup {
+    background: white;
+    border-radius: 15px;
+    padding: 0;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    animation: slideUpFadeIn 0.4s ease-out;
+}
+.psych-rewards-header {
+    background: linear-gradient(135deg, #8E44AD, #9B59B6);
+    color: white;
+    padding: 20px;
+    border-radius: 15px 15px 0 0;
+}
+.psych-rewards-header i { font-size: 48px; margin-bottom: 10px; }
+.psych-rewards-header h3 { margin: 0; font-size: 22px; }
+.psych-rewards-body { padding: 25px; }
+.psych-rewards-body ul { list-style: none; padding: 0; margin: 0; text-align: right; }
+.psych-rewards-body li {
+    font-size: 16px;
+    color: #34495e;
+    padding: 10px 0;
+    border-bottom: 1px solid #ecf0f1;
+}
+.psych-rewards-body li:last-child { border-bottom: none; }
+.psych-rewards-body li i { color: #27ae60; margin-left: 10px; }
+.psych-rewards-close {
+    background: #27ae60;
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 0 0 15px 15px;
+    transition: background 0.2s;
+}
+.psych-rewards-close:hover { background: #229954; }
+#psych-toast-container {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000001;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.psych-toast {
+    display: none; /* Initially hidden */
+    padding: 16px 24px;
+    border-radius: 8px;
+    color: white;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.psych-toast.success { background: linear-gradient(135deg, #28a745, #20a038); }
+.psych-toast.error { background: linear-gradient(135deg, #dc3545, #e04353); }
+.psych-toast i { font-size: 20px; margin-right: 8px; }
+
+@keyframes slideUpFadeIn { 0% { opacity: 0; transform: translateY(30px) scale(0.95); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+@keyframes timelineSlideIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+.psych-path-container { font-family: var(--psych-font-family); max-width: 100%; width: 100%; margin: 20px auto; padding: 16px; box-sizing: border-box; }
+.coach-path-notice { background: linear-gradient(135deg, #8E44AD, #9B59B6); color: var(--psych-white); padding: 16px 20px; border-radius: var(--psych-border-radius); margin-bottom: 24px; text-align: center; font-weight: 600; box-shadow: var(--psych-box-shadow-sm); font-size: 14px; }
+.coach-path-notice i { margin-right: 8px; font-size: 16px; }
+
+.psych-progress-indicator { background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 20px; margin: 20px 0 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.psych-progress-stats { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.psych-progress-text { font-size: 14px; color: #495057; font-weight: 500; }
+.psych-progress-percentage { font-size: 18px; font-weight: 700; color: #007bff; }
+.psych-progress-bar { width: 100%; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; position: relative; }
+.psych-progress-fill { height: 100%; background: linear-gradient(90deg, #007bff, #28a745); border-radius: 4px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+.psych-progress-fill::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation: shimmer 2s infinite; }
+
+.psych-path-header { text-align: center; margin: 0 0 32px; padding: 24px; background: linear-gradient(135deg, #f8f9fa, #ffffff); border-radius: 12px; border: 1px solid #e9ecef; }
+.psych-path-title { margin: 0; font-size: 24px; font-weight: 700; color: #212529; text-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+.psych-timeline { display: flex; flex-direction: column; gap: 24px; padding: 20px 0; position: relative; }
+.psych-timeline::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; background: linear-gradient(to bottom, var(--psych-gray-300), var(--psych-primary-color)); transform: translateX(-50%); z-index: 0; }
+.psych-timeline-item { background: var(--psych-white); border-radius: var(--psych-border-radius-lg); padding: 24px; box-shadow: var(--psych-box-shadow-sm); border: 1px solid var(--psych-gray-200); transition: var(--psych-transition); position: relative; margin: 0 auto; max-width: 600px; margin-left: calc(50% + 40px); width: calc(50% - 40px); z-index: 1; animation: timelineSlideIn 0.6s ease-out forwards; }
+.psych-timeline-item:nth-child(even) { margin-left: 0; margin-right: calc(50% + 40px); }
+.psych-timeline-item::before { content: ''; position: absolute; left: 50%; top: 20px; width: 20px; height: 20px; background: var(--psych-white); border: 3px solid var(--psych-gray-300); border-radius: 50%; transform: translateX(-50%); z-index: 2; transition: var(--psych-transition); }
+.psych-timeline-item.completed::before { background: var(--psych-success-color); border-color: var(--psych-success-color); box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.2); }
+.psych-timeline-item.open::before { background: var(--psych-primary-color); border-color: var(--psych-primary-color); box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2); }
+.psych-timeline-item.locked::before { background: var(--psych-gray-400); border-color: var(--psych-gray-400); }
+.psych-timeline-icon { position: absolute; left: -21px; top: 4px; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--psych-white); font-size: 16px; font-weight: bold; transition: var(--psych-transition); box-shadow: var(--psych-box-shadow-sm); border: 3px solid var(--psych-white); }
+.psych-timeline-item.open .psych-timeline-icon { background-color: var(--psych-primary-color); animation: pulse 2s infinite; }
+.psych-timeline-item.locked .psych-timeline-icon { background-color: var(--psych-gray-600); }
+.psych-timeline-item.completed .psych-timeline-icon { background-color: var(--psych-success-color); animation: none; }
+.psych-timeline-item.restricted .psych-timeline-icon { background-color: var(--psych-danger-color); }
+.psych-timeline-content { background: var(--psych-white); padding: 20px; border-radius: var(--psych-border-radius-lg); box-shadow: var(--psych-box-shadow); border: 1px solid var(--psych-gray-200); transition: var(--psych-transition); position: relative; overflow: hidden; }
+.psych-timeline-content::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--psych-primary-color), var(--psych-success-color)); opacity: 0; transition: var(--psych-transition); }
+.psych-timeline-item.open .psych-timeline-content::before, .psych-timeline-item.completed .psych-timeline-content::before { opacity: 1; }
+.psych-timeline-content:hover { box-shadow: var(--psych-box-shadow-lg); transform: translateY(-2px); }
+.psych-station-title { margin: 0 0 12px; font-size: 18px; font-weight: 700; color: var(--psych-gray-800); line-height: 1.4; }
+
+.psych-accordion { border-radius: 8px; overflow: hidden; }
+.psych-accordion-item { background: #fff; margin-bottom: 16px; border: 1px solid #eee; border-radius: 8px; transition: var(--psych-transition); }
+.psych-accordion-item:hover { box-shadow: var(--psych-box-shadow); }
+.psych-accordion-header { display: flex; align-items: center; cursor: pointer; padding: 20px; transition: var(--psych-transition); }
+.psych-accordion-header:hover { background: rgba(0,123,255,0.02); }
+.psych-accordion-icon { margin-left: 12px; font-size: 22px; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--psych-gray-600); color: white; }
+.psych-accordion-item.open .psych-accordion-icon { background: var(--psych-primary-color); }
+.psych-accordion-item.completed .psych-accordion-icon { background: var(--psych-success-color); }
+.psych-accordion-title { flex: 1; font-weight: 700; font-size: 16px; margin: 0; }
+.psych-accordion-toggle { background: none; border: none; cursor: pointer; padding: 8px; color: #888; font-size: 18px; transition: var(--psych-transition); }
+.psych-accordion-toggle:hover { color: var(--psych-primary-color); }
+.psych-accordion-status { margin-left: 12px; }
+.psych-accordion-content { display: none; transition: all .3s; border-top: 1px solid #eee; background: #fafafa; }
+.psych-accordion-inner { padding: 24px 16px; }
+.psych-accordion-item.open .psych-accordion-content { display: block; }
+
+.psych-treasure-map { position: relative; height: 370px; background: repeating-linear-gradient(135deg, #f6e7c1 0 20px, #ecd999 20px 40px); border-radius: 18px; overflow: hidden; margin: 32px 0; }
+.psych-map-path { width: 100%; height: 100%; position: absolute; top: 0; right: 0; }
+.psych-treasure-station { position: absolute; width: 72px; height: 72px; z-index: 10; text-align: center; cursor: pointer; }
+.psych-treasure-icon { position: relative; z-index: 2; width: 60px; height: 60px; border-radius: 100%; margin: 0 auto; background: linear-gradient(135deg, #ffe59d, #fffbe4, #fffbe4 90%); box-shadow: 0 0 8px rgba(0,0,0,.08); display: flex; align-items: center; justify-content: center; font-size: 25px; transition: var(--psych-transition); }
+.psych-treasure-station.completed .psych-treasure-icon { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #8B4513; }
+.psych-treasure-station:hover .psych-treasure-icon { transform: scale(1.1); }
+.psych-treasure-glow { position: absolute; z-index: 1; width: 56px; height: 56px; top: 2px; left: 2px; box-shadow: 0 0 32px 8px #ffe59999; border-radius: 100%; pointer-events: none; animation: pulse 2s infinite; }
+.psych-treasure-popup { display: none; position: absolute; left: 77px; top: 0; background: #fff8de; border: 1px solid #eeda9a; border-radius: 12px; padding: 13px 24px 13px 16px; min-width: 180px; z-index: 100; box-shadow: 0 3px 16px 3px #e7e4b7af; font-size: 14px; text-align: right; }
+.psych-treasure-station:hover .psych-treasure-popup, .psych-treasure-station:focus-within .psych-treasure-popup { display: block; }
+.psych-treasure-path-line { position: absolute; width: 56px; height: 8px; top: 25px; left: 58px; background: repeating-linear-gradient(90deg, #ceb253 8px, #fffbe4 2px, #ceb253 14px); border-radius: 8px; z-index: 1; opacity: .5; }
+.psych-treasure-path-line.completed { opacity: 1; background: linear-gradient(90deg, #fbd184, #fff176 80%); }
+.psych-treasure-path-line.incomplete { opacity: .4; filter: grayscale(1); }
+
+.psych-cards { display: grid; gap: 20px; margin: 24px 0; grid-template-columns: 1fr; }
+.psych-card-item { background: #fff; border-radius: 12px; border: 1px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; position: relative; }
+.psych-card-item::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #dee2e6, #ced4da); transition: all 0.3s; }
+.psych-card-item.open::before { background: linear-gradient(90deg, #007bff, #0056b3); }
+.psych-card-item.completed::before { background: linear-gradient(90deg, #28a745, #1e7e34); }
+.psych-card-item.restricted::before { background: linear-gradient(90deg, #dc3545, #c82333); }
+.psych-card-item:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+.psych-card-item.locked:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.psych-card-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 12px; background: linear-gradient(135deg, #f8f9fa, #ffffff); }
+.psych-card-icon { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; background: linear-gradient(135deg, #6c757d, #495057); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+.psych-card-item.open .psych-card-icon { background: linear-gradient(135deg, #007bff, #0056b3); animation: pulse 2s infinite; }
+.psych-card-item.completed .psych-card-icon { background: linear-gradient(135deg, #28a745, #1e7e34); animation: none; }
+.psych-card-item.restricted .psych-card-icon { background: linear-gradient(135deg, #dc3545, #c82333); }
+.psych-card-status { margin-left: 12px; }
+.psych-card-body { padding: 0 20px 16px; }
+.psych-card-title { margin: 0 0 12px; font-size: 18px; font-weight: 700; color: #212529; line-height: 1.4; }
+.psych-card-footer { padding: 16px 20px 20px; background: rgba(248, 249, 250, 0.5); }
+.psych-card-action-btn, .psych-list-action-btn, .psych-accordion-action-btn, .psych-treasure-action-btn { width: 100%; padding: 12px 20px; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s; cursor: pointer; background: linear-gradient(135deg, #007bff, #0056b3); color: #fff; box-shadow: 0 2px 6px rgba(0,123,255,0.3); }
+.psych-card-action-btn:hover, .psych-list-action-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,123,255,0.4); }
+.psych-card-action-btn:disabled, .psych-list-action-btn:disabled { background: #6c757d !important; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+.psych-simple-list { background: #fff; border-radius: 12px; border: 1px solid #e9ecef; overflow: hidden; margin: 24px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.psych-list-item { display: flex; align-items: center; padding: 20px; border-bottom: 1px solid #f1f3f4; transition: all 0.3s; position: relative; }
+.psych-list-item:last-child { border-bottom: none; }
+.psych-list-item:hover { background: rgba(0,123,255,0.02); }
+.psych-list-item.completed { background: rgba(40,167,69,0.05); }
+.psych-list-item.locked { opacity: 0.7; background: rgba(108,117,125,0.03); }
+.psych-list-item.restricted { background: rgba(220,53,69,0.05); }
+.psych-list-number { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #6c757d, #495057); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; margin-left: 16px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+.psych-list-item.open .psych-list-number { background: linear-gradient(135deg, #007bff, #0056b3); animation: pulse 2s infinite; }
+.psych-list-item.completed .psych-list-number { background: linear-gradient(135deg, #28a745, #1e7e34); animation: none; }
+.psych-list-item.restricted .psych-list-number { background: linear-gradient(135deg, #dc3545, #c82333); }
+.psych-list-content { flex: 1; margin-left: 16px; }
+.psych-list-title { margin: 0 0 8px; font-size: 16px; font-weight: 600; color: #212529; line-height: 1.4; }
+.psych-list-status { margin-left: 16px; flex-shrink: 0; }
+.psych-list-action { margin-right: 16px; flex-shrink: 0; }
+
+.psych-status-badge { display: inline-block; background: #fafafa; color: #888; border: 1px solid #eee; border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 500; }
+.psych-status-badge.completed { background: #d6ffd2; color: #0c6e22; border-color: #a8e1b5; }
+.psych-status-badge.open { background: #e3f5ff; color: #268dbf; border-color: #74bddb; }
+.psych-status-badge.locked { background: #f8d6d6; color: #a87266; border-color: #f5bdbd; }
+.psych-status-badge.restricted { background: #ebe6f1; color: #5b347e; border-color: #8264aa; }
+
+.coach-impersonation-indicator { background: linear-gradient(135deg, #8E44AD, #9B59B6); color: var(--psych-white); padding: 6px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 12px; display: inline-flex; align-items: center; font-weight: 500; }
+.coach-impersonation-indicator i { margin-right: 6px; font-size: 14px; }
+
+.psych-station-action-btn { padding: 12px 24px; border: none; border-radius: var(--psych-border-radius); cursor: pointer; font-weight: 600; transition: var(--psych-transition); font-size: 14px; min-width: 140px; position: relative; overflow: hidden; text-transform: none; font-family: inherit; }
+.psych-station-action-btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(255, 255, 255, 0.2); border-radius: 50%; transition: width 0.6s, height 0.6s, top 0.6s, left 0.6s; transform: translate(-50%, -50%); }
+.psych-station-action-btn:active::before { width: 300px; height: 300px; top: 50%; left: 50%; }
+.psych-timeline-item.open .psych-station-action-btn { background: linear-gradient(135deg, var(--psych-primary-color), #0c7cd5); color: var(--psych-white); box-shadow: var(--psych-box-shadow-sm); }
+.psych-timeline-item.open .psych-station-action-btn:hover { background: linear-gradient(135deg, var(--psych-primary-hover), #0a6bb8); transform: translateY(-1px); box-shadow: var(--psych-box-shadow); }
+.psych-timeline-item.completed .psych-station-action-btn { background: linear-gradient(135deg, var(--psych-success-color), #20a038); color: var(--psych-white); box-shadow: var(--psych-box-shadow-sm); }
+.psych-timeline-item.completed .psych-station-action-btn:hover { background: linear-gradient(135deg, var(--psych-success-hover), #1b8f32); transform: translateY(-1px); box-shadow: var(--psych-box-shadow); }
+.psych-timeline-item.restricted .psych-station-action-btn { background: linear-gradient(135deg, var(--psych-danger-color), #e04353); color: var(--psych-white); box-shadow: var(--psych-box-shadow-sm); }
+.psych-station-action-btn:disabled { background: var(--psych-gray-300) !important; color: var(--psych-gray-600) !important; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+.psych-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 999999; padding: 16px; box-sizing: border-box; animation: fadeIn 0.3s ease-out; }
+.psych-modal-container { background: var(--psych-white); padding: 0; border-radius: var(--psych-border-radius-lg); width: 100%; max-width: 600px; position: relative; box-shadow: var(--psych-box-shadow-lg); max-height: calc(100vh - 32px); overflow: visible !important; animation: var(--psych-animation-slide-up); border: 1px solid var(--psych-gray-200); }
+.psych-modal-close { position: absolute; top: 12px; left: 12px; width: 20px; height: 20px; border: none; background: none; cursor: pointer; color: #ccc; padding: 0; z-index: 99999; outline: none !important; box-shadow: none !important; }
+.psych-modal-close:hover, .psych-modal-close:focus, .psych-modal-close:active { background: none !important; color: #999 !important; box-shadow: none !important; outline: none !important; }
+.psych-modal-close svg { width: 14px; height: 14px; transition: var(--psych-transition); }
+.psych-modal-title { margin: 0; padding: 24px 24px 16px; font-size: 20px; font-weight: 700; color: var(--psych-gray-800); line-height: 1.3; border-bottom: 1px solid var(--psych-gray-200); background: linear-gradient(135deg, var(--psych-gray-100), var(--psych-white)); }
+.psych-modal-content { padding: 24px; overflow-y: auto !important; max-height: calc(100vh - 200px); scrollbar-width: thin; scrollbar-color: var(--psych-gray-400) var(--psych-gray-200); }
+.psych-modal-content::-webkit-scrollbar { width: 6px; }
+.psych-modal-content::-webkit-scrollbar-track { background: var(--psych-gray-200); border-radius: 3px; }
+.psych-modal-content::-webkit-scrollbar-thumb { background: var(--psych-gray-400); border-radius: 3px; }
+.psych-modal-content::-webkit-scrollbar-thumb:hover { background: var(--psych-gray-500); }
+.mission-action-wrapper { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--psych-gray-200); }
+.coach-mission-notice { background: linear-gradient(135deg, #e3f2fd, #f3e5f5); border: 1px solid var(--psych-primary-color); color: var(--psych-primary-color); padding: 16px; border-radius: var(--psych-border-radius); margin-bottom: 20px; font-weight: 500; }
+.coach-mission-notice i { margin-right: 8px; font-size: 16px; }
+
+@media (min-width: 768px) {
+    .psych-cards { grid-template-columns: repeat(2, 1fr); }
+    .psych-path-container { padding: 32px; }
+}
+@media (min-width: 1024px) {
+    .psych-cards { grid-template-columns: repeat(3, 1fr); }
+    .psych-path-container { padding: 40px; }
+}
+@media (max-width: 768px) {
+    .psych-timeline::before { left: 20px; }
+    .psych-timeline-item { width: calc(100% - 60px); margin-left: 60px !important; margin-right: 0 !important; }
+}
+@media (max-width: 480px) {
+    .psych-modal-container { margin: 16px; max-width: calc(100vw - 32px); }
+    .psych-modal-title { font-size: 18px; padding: 20px 16px 12px; }
+    .psych-modal-content { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
+@media (prefers-color-scheme: dark) { :root { --psych-white: #1a1a1a; --psych-gray-100: #2d2d2d; --psych-gray-200: #404040; --psych-gray-800: #e0e0e0; --psych-gray-900: #ffffff; } }
+@media print { .psych-modal-overlay, .psych-treasure-map, .psych-station-action-btn { display: none !important; } .psych-timeline-item, .psych-card-item, .psych-list-item { break-inside: avoid; box-shadow: none !important; border: 1px solid #ccc !important; } }
+
+/* ================================================================= */
+/* MOBILE RESPONSIVENESS IMPROVEMENTS */
+/* ================================================================= */
+@media (max-width: 768px) {
+    .psych-path-title {
+        font-size: 20px;
+    }
+    .psych-timeline-item {
+        padding: 16px;
+    }
+    .psych-station-title {
+        font-size: 16px;
+    }
+    .psych-card-body, .psych-card-footer {
+        padding: 12px;
+    }
+    .psych-list-item {
+        padding: 12px;
+        flex-wrap: wrap;
+    }
+    .psych-list-content {
+        flex-basis: 100%;
+        margin-bottom: 10px;
+    }
+    .psych-list-action {
+        width: 100%;
+    }
+    .psych-list-action-btn {
+        width: 100%;
+    }
+}
