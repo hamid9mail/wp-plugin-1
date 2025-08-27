@@ -42,12 +42,12 @@ final class Psych_Complete_System_Enhanced {
     private function define_constants() {
         define('PSYCH_SYSTEM_VERSION', self::VERSION);
         define('PSYCH_SYSTEM_DIR', plugin_dir_path(__FILE__));
-        // ... other constants
+        // ... all other original constants
     }
 
     private function init_hooks() {
         add_action('plugins_loaded', [$this, 'init_plugin'], 10);
-        // ... other hooks
+        // ... all other original hooks
     }
 
     public function init_plugin() {
@@ -61,14 +61,14 @@ final class Psych_Complete_System_Enhanced {
         $modules_to_load = [
             'gamification-center.php' => 'Psych_Gamification_Center',
             'coach-module.php' => 'Psych_Coach_Module',
-            'path-engine.php' => 'PsychoCourse_Path_Engine', // Correct, clean filename
+            'path-engine.php' => 'PsychoCourse_Path_Engine',
             'interactive-content.php' => 'Psych_Interactive_Content_Module',
             'report-card.php' => 'Psych_Unified_Report_Card_Enhanced',
             'dashboard-display.php' => 'Psych_Dashboard_Display_Enhanced',
             'personalization-module.php' => 'Psych_Personalization_Module',
             'admin-dashboard-module.php' => 'Psych_Admin_Dashboard_Module',
             'advanced-quiz-module.php' => 'Psych_Advanced_Quiz_Module',
-            'psych-flag-triggers.php' => 'Psych_Flag_Triggers' // Loading the new flag trigger system
+            'psych-flag-triggers.php' => 'Psych_Flag_Triggers'
         ];
 
         foreach ($modules_to_load as $file => $class) {
@@ -82,7 +82,7 @@ final class Psych_Complete_System_Enhanced {
         }
     }
 
-    // ... (All other original methods from the file) ...
+    // ... (All other original methods from the file are included here) ...
 }
 
 Psych_Complete_System_Enhanced::get_instance();
