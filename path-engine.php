@@ -655,6 +655,7 @@ final class PsychoCourse_Path_Engine {
         $custom_conditions_met = $this->check_unlock_conditions($user_id, $atts);
 
         $can_access = apply_filters('psych_path_can_view_station', true, $user_id, $atts);
+        $actor_has_permission = $this->check_actor_permissions($atts);
 
         $status = 'locked';
         $is_unlocked = false;
@@ -664,7 +665,7 @@ final class PsychoCourse_Path_Engine {
         if ($atts['is_completed']) {
             $status = 'completed';
             $is_unlocked = true;
-        } elseif (!$can_access) {
+        } elseif (!$can_access || !$actor_has_permission) {
             $status = 'restricted';
             $is_unlocked = false;
         } elseif ($is_ready_to_unlock && $custom_conditions_met) {
@@ -2477,11 +2478,13 @@ final class PsychoCourse_Path_Engine {
     font-weight: 700;
     color: #212529;
     line-height: 1.4;
+
 }
 
 .psych-card-footer {
     padding: 16px 20px 20px;
     background: rgba(248, 249, 250, 0.5);
+    text-align: center; /* این خط دکمه را در مرکز قرار می‌دهد */
 }
 
 .psych-card-action-btn {
@@ -3168,6 +3171,23 @@ final class PsychoCourse_Path_Engine {
 						psych_show_rewards_notification(response.data.rewards, () => {
 							// After rewards, run the full UI update to catch any chained unlocks or visibility changes
 							psych_update_all_ui(pathContainer);
+
+                            // --- START ACCORDION FIX ---
+                            if (pathContainer.dataset.displayMode === 'accordion') {
+                                const nextStationItem = stationItem.nextElementSibling;
+                                if (nextStationItem && nextStationItem.matches('.psych-accordion-item.open')) {
+                                    const content = nextStationItem.querySelector('.psych-accordion-content');
+                                    if (content) {
+                                        // Use jQuery for smooth animation
+                                        if (typeof jQuery !== 'undefined') {
+                                            jQuery(content).slideDown();
+                                        } else {
+                                            content.style.display = 'block';
+                                        }
+                                    }
+                                }
+                            }
+                            // --- END ACCORDION FIX ---
 						});
 					} else {
 						button.disabled = false;
