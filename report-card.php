@@ -76,7 +76,6 @@ final class Psych_Unified_Report_Card_Enhanced {
 
     private function add_hooks() {
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
-        add_action('wp_head', [$this, 'print_tab_script']);
         add_action('wp_ajax_psych_save_user_notes', [$this, 'ajax_save_user_notes']);
         add_action('wp_ajax_psych_save_user_goals', [$this, 'ajax_save_user_goals']);
         add_action('wp_ajax_psych_send_parent_report', [$this, 'ajax_send_parent_report']);
@@ -84,6 +83,9 @@ final class Psych_Unified_Report_Card_Enhanced {
 
         // Handle form submissions
         add_action('init', [$this, 'handle_form_submissions']);
+
+        // Cron job for logging points
+        add_action('psych_log_daily_points_hook', [$this, 'log_all_users_daily_points']);
     }
 
     public function enqueue_assets() {
@@ -798,25 +800,6 @@ final class Psych_Unified_Report_Card_Enhanced {
         ';
     }
 
-    public function print_tab_script() {
-        ?>
-        <script>
-        function openPsychTab(evt, tabName) {
-            var i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("psych-tab-content");
-            for (i = 0; i < tabcontent.length; i++) {
-                tabcontent[i].style.display = "none";
-            }
-            tablinks = document.getElementsByClassName("psych-tab-link");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].className = tablinks[i].className.replace(" active", "");
-            }
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
-        }
-        </script>
-        <?php
-    }
 
     private function register_shortcodes() {
         add_shortcode('psych_report_card', [$this, 'render_report_card_shortcode']);
@@ -1237,6 +1220,30 @@ final class Psych_Unified_Report_Card_Enhanced {
     // DATA RETRIEVAL METHODS (Integration with other modules)
     // =====================================================================
 
+    public function log_all_users_daily_points() {
+        $users = get_users(['fields' => 'ID']);
+        foreach ($users as $user_id) {
+            $this->log_user_daily_points($user_id);
+        }
+    }
+
+    public function log_user_daily_points($user_id) {
+        $history = get_user_meta($user_id, 'psych_points_history', true) ?: [];
+        $total_points = $this->get_user_total_points($user_id);
+
+        $today = date('Y-m-d');
+
+        // To prevent duplicate entries if the cron runs multiple times a day
+        $history[$today] = $total_points;
+
+        // Keep the last 30 days of data
+        if (count($history) > 30) {
+            $history = array_slice($history, -30, 30, true);
+        }
+
+        update_user_meta($user_id, 'psych_points_history', $history);
+    }
+
     private function get_user_level_info($user_id) {
         if (function_exists('psych_gamification_get_user_level_info')) {
             return psych_gamification_get_user_level_info($user_id);
@@ -1304,28 +1311,48 @@ final class Psych_Unified_Report_Card_Enhanced {
     }
 
     private function get_leaderboard_data($user_id) {
-        $leaderboard_data = [
-            'user_rank' => 0,
-            'total_users' => 0,
-            'top_users' => []
-        ];
+        global $wpdb;
 
-        if (class_exists('Psych_Gamification_Center')) {
-            $gamification = Psych_Gamification_Center::get_instance();
+        // Get Top 10 Users
+        $top_users_query = $wpdb->get_results($wpdb->prepare(
+            "SELECT user_id, meta_value as points
+             FROM {$wpdb->usermeta}
+             WHERE meta_key = %s
+             ORDER BY CAST(meta_value AS UNSIGNED) DESC
+             LIMIT 10",
+            'psych_total_points'
+        ));
 
-            // This would need to be implemented in the gamification center
-            if (method_exists($gamification, 'get_user_rank')) {
-                $leaderboard_data['user_rank'] = $gamification->get_user_rank($user_id);
-            }
-
-            if (method_exists($gamification, 'get_top_users_by_points')) {
-                $leaderboard_data['top_users'] = $gamification->get_top_users_by_points(10);
+        $top_users = [];
+        foreach ($top_users_query as $user_row) {
+            $user_data = get_userdata($user_row->user_id);
+            if ($user_data) {
+                $level_info = $this->get_user_level_info($user_row->user_id);
+                $top_users[] = [
+                    'ID' => $user_row->user_id,
+                    'display_name' => $user_data->display_name,
+                    'points' => (int) $user_row->points,
+                    'level' => $level_info['name'] ?? 'N/A'
+                ];
             }
         }
 
-        $leaderboard_data['total_users'] = count_users()['total_users'];
+        // Get Current User's Rank
+        $current_user_points = (int) get_user_meta($user_id, 'psych_total_points', true);
+        $user_rank = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(user_id) + 1
+             FROM {$wpdb->usermeta}
+             WHERE meta_key = %s
+             AND CAST(meta_value AS UNSIGNED) > %d",
+            'psych_total_points',
+            $current_user_points
+        ));
 
-        return $leaderboard_data;
+        return [
+            'user_rank'   => (int) $user_rank,
+            'total_users' => count_users()['total_users'],
+            'top_users'   => $top_users
+        ];
     }
 
     private function get_user_path_data($user_id) {
@@ -1358,16 +1385,24 @@ final class Psych_Unified_Report_Card_Enhanced {
     }
 
     private function generate_progress_chart_data($user_id) {
-        // Generate last 30 days progress data
+        $history = get_user_meta($user_id, 'psych_points_history', true) ?: [];
+
+        // Ensure we have data for today if it hasn't been logged yet for immediate view
+        if (!isset($history[date('Y-m-d')])) {
+            $history[date('Y-m-d')] = $this->get_user_total_points($user_id);
+        }
+
+        // Sort by date just in case
+        ksort($history);
+
+        // Get the last 30 days
+        $history = array_slice($history, -30, 30, true);
+
         $labels = [];
         $points = [];
-
-        for ($i = 29; $i >= 0; $i--) {
-            $date = date('Y-m-d', strtotime("-{$i} days"));
+        foreach ($history as $date => $value) {
             $labels[] = wp_date('j M', strtotime($date));
-
-            // This would need historical data tracking
-            $points[] = $this->get_user_points_on_date($user_id, $date);
+            $points[] = intval($value);
         }
 
         return [
@@ -1455,11 +1490,6 @@ final class Psych_Unified_Report_Card_Enhanced {
         return array_slice($achievements, 0, 8);
     }
 
-    private function get_user_points_on_date($user_id, $date) {
-        // This would require historical data tracking
-        // For now, return current points (this should be implemented properly)
-        return $this->get_user_total_points($user_id);
-    }
 
     // =====================================================================
     // AJAX HANDLERS
@@ -1779,18 +1809,10 @@ register_activation_hook(__FILE__, function() {
     // Set default options if they don't exist
     if (!get_option('psych_report_card_version')) {
         update_option('psych_report_card_version', Psych_Unified_Report_Card_Enhanced::VERSION);
+    }
 
-        // Create sample test results for demonstration
-        $sample_results = [
-            [
-                'title' => 'آزمون نمونه',
-                'score' => 85,
-                'date' => current_time('mysql')
-            ]
-        ];
-
-        // This would typically be done per user, but here's the structure
-        // update_user_meta($user_id, Psych_Unified_Report_Card_Enhanced::TEST_RESULTS_META_KEY, $sample_results);
+    if (!wp_next_scheduled('psych_log_daily_points_hook')) {
+        wp_schedule_event(time(), 'daily', 'psych_log_daily_points_hook');
     }
 });
 
@@ -1798,6 +1820,7 @@ register_activation_hook(__FILE__, function() {
 register_deactivation_hook(__FILE__, function() {
     // Clean up any temporary data if needed
     wp_clear_scheduled_hook('psych_report_card_daily_cleanup');
+    wp_clear_scheduled_hook('psych_log_daily_points_hook');
 });
 
 // Schedule daily cleanup
