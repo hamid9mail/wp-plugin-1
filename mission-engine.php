@@ -320,10 +320,10 @@ private function get_shared_js() {
                      container.find('.psych-activity-feedback').removeClass('error').addClass('success').html(message).slideDown();
                      setTimeout(() => container.find('.psych-activity-feedback').slideUp(), 4000);
                      return;
-                } else {
-                     setTimeout(() => window.location.reload(), 2000);
                 }
                 window.psychActivities.showFeedback(container, message, 'success');
+                // Trigger a global event for other modules to listen to
+                $(document).trigger('psych_mission_engine_activity_completed', [payload]);
             } else {
                 window.psychActivities.showFeedback(container, response.data.message || 'خطا در ثبت.', 'error');
             }

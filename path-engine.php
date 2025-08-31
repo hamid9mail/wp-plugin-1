@@ -1359,11 +1359,20 @@ final class PsychoCourse_Path_Engine {
 
 				$full_refresh_needed = isset($result['rewards_summary']['revealed_station_flag']);
 
+				$updates = [
+                    [
+                        'node_id' => $node_id,
+                        'html' => $new_inline_html,
+                        'status' => 'completed',
+						'station_data' => $station_data
+                    ]
+                ];
+
 				wp_send_json_success([
 					'message' => 'ماموریت با موفقیت تکمیل شد!',
 					'status' => 'completed',
 					'rewards' => $result['rewards_summary'],
-					'new_html' => $new_inline_html,
+					'updates' => $updates,
 					'full_path_refresh' => $full_refresh_needed
 				]);
 			} else {
@@ -3138,9 +3147,26 @@ final class PsychoCourse_Path_Engine {
 						if (modal && modal.style.display !== 'none') {
 							psych_close_station_modal();
 						}
-						stationItem.classList.remove('open');
-						stationItem.classList.add('completed');
+
+						// New logic to handle the 'updates' array
+						if (response.data.updates && Array.isArray(response.data.updates)) {
+							response.data.updates.forEach(update => {
+								const itemToUpdate = document.querySelector(`[data-station-node-id="${update.node_id}"]`);
+								if (itemToUpdate) {
+									itemToUpdate.classList.remove('open', 'locked', 'restricted');
+									itemToUpdate.classList.add(update.status);
+									itemToUpdate.setAttribute('data-station-details', JSON.stringify(update.station_data));
+
+									const inlineContent = itemToUpdate.querySelector('.psych-inline-station-content, .psych-accordion-mission-content, .psych-treasure-content, .psych-card-footer, .psych-list-action');
+									if (inlineContent) {
+										inlineContent.innerHTML = update.html;
+									}
+								}
+							});
+						}
+
 						psych_show_rewards_notification(response.data.rewards, () => {
+							// After rewards, run the full UI update to catch any chained unlocks or visibility changes
 							psych_update_all_ui(pathContainer);
 						});
 					} else {
@@ -3278,15 +3304,15 @@ final class PsychoCourse_Path_Engine {
 			}
 		});
 
-		if (typeof jQuery !== 'undefined') {
-			$(document).on('gform_confirmation_loaded', function(event, formId){
-				if (document.querySelector('.psych-path-container')) {
-					setTimeout(function() {
-						location.reload();
-					}, 500);
-				}
-			});
-		}
+		$(document).on('psych_mission_engine_activity_completed', function(event, payload) {
+			const pathContainer = document.querySelector('.psych-path-container');
+			if (pathContainer) {
+				// Wait a moment for the user to see the success message from the mission engine
+				setTimeout(function() {
+					psych_update_all_ui(pathContainer);
+				}, 1500);
+			}
+		});
 	})(jQuery);
 	</script>
 	<?php
