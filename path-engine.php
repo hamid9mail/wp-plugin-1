@@ -622,7 +622,10 @@ final class PsychoCourse_Path_Engine {
 				'user_meta_value'     => '',
 				'gform_mode'          => '',
 				'mission_required_submissions' => '1',
-				'visibility_flag'     => ''
+				'visibility_flag'     => '',
+                'allowed_actors'      => 'self',
+                'required_actors'     => 1,
+                'activity_type'       => ''
 			], $station_data['atts']);
 
 			$atts['station_node_id'] = sanitize_key($atts['station_node_id']);
@@ -740,6 +743,45 @@ final class PsychoCourse_Path_Engine {
         }
     }
 
+    private function get_assigned_coach($user_id) {
+        if (!$user_id) return 0;
+        global $wpdb;
+        return (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT meta_value FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key LIKE %s LIMIT 1",
+            $user_id,
+            'psych_assigned_coach_for_product_%'
+        ));
+    }
+
+    private function check_actor_permissions($station_atts) {
+        $context = $this->get_viewing_context();
+        $target_user_id = $context['viewed_user_id'];
+        $actor_user_id = $context['real_user_id'];
+        $allowed_actors = $station_atts['allowed_actors'] ?? 'self';
+
+        // Mission engine missions have their own check, so we bypass this for them.
+        if (($station_atts['mission_type'] ?? '') === 'mission') {
+            return true;
+        }
+
+        $allowed = array_map('trim', explode(',', $allowed_actors));
+
+        // Self
+        if ($target_user_id == $actor_user_id && in_array('self', $allowed)) return true;
+
+        // Coach
+        $coach_id = $this->get_assigned_coach($target_user_id);
+        if ($coach_id && $coach_id == $actor_user_id && in_array('coach', $allowed)) return true;
+
+        // Any logged-in user (but not self)
+        if ($actor_user_id > 0 && $target_user_id != $actor_user_id && in_array('users', $allowed)) return true;
+
+        // Guests
+        if ($actor_user_id == 0 && in_array('guests', $allowed)) return true;
+
+        return false;
+    }
+
     private function is_station_completed($user_id, $node_id, $station_atts) {
         $completed_stations = get_user_meta($user_id, PSYCH_PATH_META_COMPLETED, true) ?: [];
         if (isset($completed_stations[$node_id])) {
@@ -751,6 +793,15 @@ final class PsychoCourse_Path_Engine {
         $mission_target = $station_atts['mission_target'];
 
         switch ($mission_type) {
+            case 'mission':
+                $flag_name = $station_atts['station_node_id'];
+                if (!empty($flag_name)) {
+                    $meta_key = '_psych_mission_flag_' . sanitize_key($flag_name);
+                    if (get_user_meta($user_id, $meta_key, true)) {
+                        $completed_retroactively = true;
+                    }
+                }
+                break;
             case 'flag':
                 $flag_name = $station_atts['mission_target'];
                 if (!empty($flag_name)) {
@@ -1012,6 +1063,29 @@ final class PsychoCourse_Path_Engine {
 		}
 
 		switch ($type) {
+			case 'mission':
+				$mission_id = $station_details['mission_target'];
+				$activity_type = $station_details['activity_type'];
+
+				if (empty($mission_id) || empty($activity_type)) {
+					$output .= "<p>خطا: شناسه ماموریت یا نوع فعالیت برای این ایستگاه مشخص نشده است.</p>";
+				} else {
+					$rewards_for_mission = $station_details['rewards'] ?? '';
+					$flag_on_complete = $station_details['station_node_id']; // The flag is the station ID itself
+
+					$mission_shortcode = sprintf(
+						'[psych_mission id="%s" mission_type="%s" allowed_actors="%s" required_actors="%d" sets_flag_on_complete="%s" rewards="%s"]',
+						esc_attr($mission_id),
+						esc_attr($activity_type),
+						esc_attr($station_details['allowed_actors']),
+						absint($station_details['required_actors']),
+						esc_attr($flag_on_complete),
+						esc_attr($rewards_for_mission)
+					);
+					$output .= do_shortcode($mission_shortcode);
+				}
+				break;
+
 			case 'button_click':
 			case 'share':
 				$can_complete = true;
