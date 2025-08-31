@@ -623,9 +623,9 @@ final class PsychoCourse_Path_Engine {
 				'gform_mode'          => '',
 				'mission_required_submissions' => '1',
 				'visibility_flag'     => '',
+                // Mission Engine Integration Attributes
                 'allowed_actors'      => 'self',
-                'required_actors'     => 1,
-                'activity_type'       => ''
+                'required_actors'     => '1'
 			], $station_data['atts']);
 
 			$atts['station_node_id'] = sanitize_key($atts['station_node_id']);
@@ -655,7 +655,6 @@ final class PsychoCourse_Path_Engine {
         $custom_conditions_met = $this->check_unlock_conditions($user_id, $atts);
 
         $can_access = apply_filters('psych_path_can_view_station', true, $user_id, $atts);
-        $actor_has_permission = $this->check_actor_permissions($atts);
 
         $status = 'locked';
         $is_unlocked = false;
@@ -665,7 +664,7 @@ final class PsychoCourse_Path_Engine {
         if ($atts['is_completed']) {
             $status = 'completed';
             $is_unlocked = true;
-        } elseif (!$can_access || !$actor_has_permission) {
+        } elseif (!$can_access) {
             $status = 'restricted';
             $is_unlocked = false;
         } elseif ($is_ready_to_unlock && $custom_conditions_met) {
@@ -744,45 +743,6 @@ final class PsychoCourse_Path_Engine {
         }
     }
 
-    private function get_assigned_coach($user_id) {
-        if (!$user_id) return 0;
-        global $wpdb;
-        return (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT meta_value FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key LIKE %s LIMIT 1",
-            $user_id,
-            'psych_assigned_coach_for_product_%'
-        ));
-    }
-
-    private function check_actor_permissions($station_atts) {
-        $context = $this->get_viewing_context();
-        $target_user_id = $context['viewed_user_id'];
-        $actor_user_id = $context['real_user_id'];
-        $allowed_actors = $station_atts['allowed_actors'] ?? 'self';
-
-        // Mission engine missions have their own check, so we bypass this for them.
-        if (($station_atts['mission_type'] ?? '') === 'mission') {
-            return true;
-        }
-
-        $allowed = array_map('trim', explode(',', $allowed_actors));
-
-        // Self
-        if ($target_user_id == $actor_user_id && in_array('self', $allowed)) return true;
-
-        // Coach
-        $coach_id = $this->get_assigned_coach($target_user_id);
-        if ($coach_id && $coach_id == $actor_user_id && in_array('coach', $allowed)) return true;
-
-        // Any logged-in user (but not self)
-        if ($actor_user_id > 0 && $target_user_id != $actor_user_id && in_array('users', $allowed)) return true;
-
-        // Guests
-        if ($actor_user_id == 0 && in_array('guests', $allowed)) return true;
-
-        return false;
-    }
-
     private function is_station_completed($user_id, $node_id, $station_atts) {
         $completed_stations = get_user_meta($user_id, PSYCH_PATH_META_COMPLETED, true) ?: [];
         if (isset($completed_stations[$node_id])) {
@@ -794,15 +754,7 @@ final class PsychoCourse_Path_Engine {
         $mission_target = $station_atts['mission_target'];
 
         switch ($mission_type) {
-            case 'mission':
-                $flag_name = $station_atts['station_node_id'];
-                if (!empty($flag_name)) {
-                    $meta_key = '_psych_mission_flag_' . sanitize_key($flag_name);
-                    if (get_user_meta($user_id, $meta_key, true)) {
-                        $completed_retroactively = true;
-                    }
-                }
-                break;
+            case 'mission': // Mission Engine Integration
             case 'flag':
                 $flag_name = $station_atts['mission_target'];
                 if (!empty($flag_name)) {
@@ -1064,28 +1016,39 @@ final class PsychoCourse_Path_Engine {
 		}
 
 		switch ($type) {
-			case 'mission':
-				$mission_id = $station_details['mission_target'];
-				$activity_type = $station_details['activity_type'];
+            case 'mission':
+                if (function_exists('psych_system_is_active') && psych_system_is_active() && shortcode_exists('psych_mission')) {
+                    $mission_atts = [
+                        'mission_type'           => 'button_click', // Default, can be overridden by mission_target
+                        'id'                     => $station_details['station_node_id'],
+                        'sets_flag_on_complete'  => $station_details['mission_target'],
+                        'rewards'                => $station_details['rewards'],
+                        'allowed_actors'         => $station_details['allowed_actors'],
+                        'required_actors'        => $station_details['required_actors'],
+                        'require_coach_approval' => 'false',
+                    ];
 
-				if (empty($mission_id) || empty($activity_type)) {
-					$output .= "<p>خطا: شناسه ماموریت یا نوع فعالیت برای این ایستگاه مشخص نشده است.</p>";
-				} else {
-					$rewards_for_mission = $station_details['rewards'] ?? '';
-					$flag_on_complete = $station_details['station_node_id']; // The flag is the station ID itself
+                    // Allow mission_target to override mission_type, e.g., mission_target="quiz:123"
+                    if (strpos($station_details['mission_target'], ':') !== false) {
+                        list($m_type, $m_target) = explode(':', $station_details['mission_target'], 2);
+                        if (!empty($m_type) && !empty($m_target)) {
+                            // This logic is a bit tricky. The flag is the primary target.
+                            // The mission type is secondary.
+                            // Let's assume for now mission_target is just the flag.
+                        }
+                    }
 
-					$mission_shortcode = sprintf(
-						'[psych_mission id="%s" mission_type="%s" allowed_actors="%s" required_actors="%d" sets_flag_on_complete="%s" rewards="%s"]',
-						esc_attr($mission_id),
-						esc_attr($activity_type),
-						esc_attr($station_details['allowed_actors']),
-						absint($station_details['required_actors']),
-						esc_attr($flag_on_complete),
-						esc_attr($rewards_for_mission)
-					);
-					$output .= do_shortcode($mission_shortcode);
-				}
-				break;
+                    $shortcode_str = '[psych_mission';
+                    foreach ($mission_atts as $key => $value) {
+                        $shortcode_str .= sprintf(' %s="%s"', $key, esc_attr($value));
+                    }
+                    $shortcode_str .= ']';
+
+                    $output .= do_shortcode($shortcode_str);
+                } else {
+                    $output .= "<p>خطا: موتور ماموریت فعال نیست یا یافت نشد.</p>";
+                }
+                break;
 
 			case 'button_click':
 			case 'share':
@@ -1360,20 +1323,11 @@ final class PsychoCourse_Path_Engine {
 
 				$full_refresh_needed = isset($result['rewards_summary']['revealed_station_flag']);
 
-				$updates = [
-                    [
-                        'node_id' => $node_id,
-                        'html' => $new_inline_html,
-                        'status' => 'completed',
-						'station_data' => $station_data
-                    ]
-                ];
-
 				wp_send_json_success([
 					'message' => 'ماموریت با موفقیت تکمیل شد!',
 					'status' => 'completed',
 					'rewards' => $result['rewards_summary'],
-					'updates' => $updates,
+					'new_html' => $new_inline_html,
 					'full_path_refresh' => $full_refresh_needed
 				]);
 			} else {
@@ -2478,13 +2432,11 @@ final class PsychoCourse_Path_Engine {
     font-weight: 700;
     color: #212529;
     line-height: 1.4;
-
 }
 
 .psych-card-footer {
     padding: 16px 20px 20px;
     background: rgba(248, 249, 250, 0.5);
-    text-align: center; /* این خط دکمه را در مرکز قرار می‌دهد */
 }
 
 .psych-card-action-btn {
@@ -3071,14 +3023,13 @@ final class PsychoCourse_Path_Engine {
 							});
 
 							// Now, execute the inline scripts in the global scope.
-							// This is safer than eval() and ensures GForm scripts initialize correctly.
-							const inlineScripts = tempDiv.querySelectorAll('script:not([src])');
+                            // This is a safer method than using eval-like constructs.
+                            const inlineScripts = tempDiv.querySelectorAll('script:not([src])');
                             inlineScripts.forEach(script => {
-                                try {
-                                    (new Function(script.innerHTML))();
-                                } catch (e) {
-                                    console.error("Error executing inline GForm script:", e);
-                                }
+                                const newScript = document.createElement('script');
+                                newScript.type = 'text/javascript';
+                                newScript.innerHTML = script.innerHTML;
+                                document.body.appendChild(newScript).parentNode.removeChild(newScript);
                             });
 						}
 
@@ -3150,44 +3101,10 @@ final class PsychoCourse_Path_Engine {
 						if (modal && modal.style.display !== 'none') {
 							psych_close_station_modal();
 						}
-
-						// New logic to handle the 'updates' array
-						if (response.data.updates && Array.isArray(response.data.updates)) {
-							response.data.updates.forEach(update => {
-								const itemToUpdate = document.querySelector(`[data-station-node-id="${update.node_id}"]`);
-								if (itemToUpdate) {
-									itemToUpdate.classList.remove('open', 'locked', 'restricted');
-									itemToUpdate.classList.add(update.status);
-									itemToUpdate.setAttribute('data-station-details', JSON.stringify(update.station_data));
-
-									const inlineContent = itemToUpdate.querySelector('.psych-inline-station-content, .psych-accordion-mission-content, .psych-treasure-content, .psych-card-footer, .psych-list-action');
-									if (inlineContent) {
-										inlineContent.innerHTML = update.html;
-									}
-								}
-							});
-						}
-
+						stationItem.classList.remove('open');
+						stationItem.classList.add('completed');
 						psych_show_rewards_notification(response.data.rewards, () => {
-							// After rewards, run the full UI update to catch any chained unlocks or visibility changes
 							psych_update_all_ui(pathContainer);
-
-                            // --- START ACCORDION FIX ---
-                            if (pathContainer.dataset.displayMode === 'accordion') {
-                                const nextStationItem = stationItem.nextElementSibling;
-                                if (nextStationItem && nextStationItem.matches('.psych-accordion-item.open')) {
-                                    const content = nextStationItem.querySelector('.psych-accordion-content');
-                                    if (content) {
-                                        // Use jQuery for smooth animation
-                                        if (typeof jQuery !== 'undefined') {
-                                            jQuery(content).slideDown();
-                                        } else {
-                                            content.style.display = 'block';
-                                        }
-                                    }
-                                }
-                            }
-                            // --- END ACCORDION FIX ---
 						});
 					} else {
 						button.disabled = false;
@@ -3324,15 +3241,41 @@ final class PsychoCourse_Path_Engine {
 			}
 		});
 
-		$(document).on('psych_mission_engine_activity_completed', function(event, payload) {
-			const pathContainer = document.querySelector('.psych-path-container');
-			if (pathContainer) {
-				// Wait a moment for the user to see the success message from the mission engine
-				setTimeout(function() {
-					psych_update_all_ui(pathContainer);
-				}, 1500);
-			}
-		});
+		if (typeof jQuery !== 'undefined') {
+			$(document).on('gform_confirmation_loaded', function(event, formId){
+                const modal = document.getElementById('psych-station-modal');
+                if (!modal || modal.style.display === 'none') {
+                    // If not in a modal, or modal is hidden, fallback to reload.
+                    // This handles cases where a GForm mission might not be in a modal.
+                    if (document.querySelector('.psych-path-container')) {
+                        setTimeout(() => location.reload(), 500);
+                    }
+                    return;
+                }
+
+                const stationDetailsJSON = modal.getAttribute('data-current-station-details');
+                if (!stationDetailsJSON) return;
+
+                const stationDetails = JSON.parse(stationDetailsJSON);
+                const stationItem = document.querySelector(`[data-station-node-id="${stationDetails.station_node_id}"]`);
+                const pathContainer = findClosest(stationItem, '.psych-path-container');
+
+                if (!stationItem || !pathContainer) {
+                    location.reload(); // Fallback if we can't find the elements
+                    return;
+                }
+
+                psych_close_station_modal();
+                stationItem.classList.remove('open');
+                stationItem.classList.add('completed');
+
+                // We don't have reward data here, so we show a generic success message.
+                const genericRewards = { 'message': 'ماموریت با موفقیت تکمیل شد!' };
+                psych_show_rewards_notification(genericRewards, () => {
+                    psych_update_all_ui(pathContainer);
+                });
+			});
+		}
 	})(jQuery);
 	</script>
 	<?php
@@ -3341,5 +3284,5 @@ final class PsychoCourse_Path_Engine {
 } // End of PsychoCourse_Path_Engine class
 
 // Initialize the class
-PsychoCourse_Path_Engine::get_instance();
+// PsychoCourse_Path_Engine::get_instance(); // This is now handled by the main system plugin.
 ?>
