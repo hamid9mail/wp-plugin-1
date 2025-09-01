@@ -51,15 +51,25 @@ if (!function_exists('psych_complete_mission_by_flag')) {
  */
 final class PsychoCourse_Path_Engine {
 
+    // =============================================================================
+    // SECTION: Core Properties & Singleton Initialization
+    // =============================================================================
+
     private static $instance = null;
-    private $path_data = [];
-    private $is_shortcode_rendered = false;
+
+    /** @var array Holds the data for all paths rendered on a single page. */
+    private $path_data_registry = [];
+
+    /** @var bool Flag to check if the main shortcode has been rendered. */
+    private $is_shortcode_active = false;
+
+    /** @var array Caches the current user viewing context. */
     private $viewing_context = null;
-    private $display_mode = 'timeline'; // Default display mode
-	// FLAG SYSTEM: Static properties to hold flag data from wrapper shortcodes
-	private static $gform_flags_to_set = [];
-	private static $quiz_flags_to_set = [];
+
+    /** @var string Holds the node ID of the station currently being rendered. */
     public static $current_station_node_id = null;
+
+    /** @var int Holds the user ID for the station currently being rendered. */
     public static $current_target_user_id = null;
 
     public static function get_instance() {
